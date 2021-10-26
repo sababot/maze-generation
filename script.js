@@ -93,6 +93,46 @@ for (var x = 0; x < boxWidth; x++){
 
 var main = 0;
 
+function return_neighbours(k){
+    var neighbours = [];
+
+    if (k == 0){
+        neighbours.push(k + 1);
+        neighbours.push(k + boxHeight);
+    }
+
+    else if (k == boxArray.length){
+        neighbours.push(k - 1);
+        neighbours.push(k - boxHeight);
+    }
+
+    else if (k == boxHeight - 1){
+        neighbours.push(k - 1);
+        neighbours.push(k + boxHeight);
+    }
+
+    else if (1 < k > boxHeight && k != 0){
+        neighbours.push(k + 1);
+        neighbours.push(k + boxHeight);
+        neighbours.push(k - 1);
+    }
+
+    else if (boxArray.length - boxHeight - 1 < k > boxArray.length && k != boxArray.length){
+        neighbours.push(k - 1);
+        neighbours.push(k - boxHeight);
+        neighbours.push(k + 1);
+    }
+
+    else{
+        neighbours.push(k + 1);
+        neighbours.push(k - 1);
+        neighbours.push(k + boxHeight);
+        neighbours.push(k - boxHeight);
+    }
+
+    return neighbours;
+}
+
 function generate_maze(){
     for (var i = 0; i < boxArray.length; i++){
         if (i == main){
@@ -105,7 +145,10 @@ function generate_maze(){
     }
 
     if (main != boxArray.length){
-        main++;
+        var direction = Math.floor((Math.random() * 4) + 1);
+        var neighbours = return_neighbours(main);
+
+        main = neighbours[direction - 1];
     }
 
     else{
