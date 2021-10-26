@@ -4,18 +4,20 @@ var c = canvas.getContext('2d');
 canvas.width = Math.round((window.innerHeight - 100) / 100) * 100;
 canvas.height = Math.round((window.innerHeight - 100) / 100) * 100;
 
-function Cell(x, y, barrier, visited, main){
+document.addEventListener("keydown", doKeyDown, true);
+
+function Cell(x, y, fixed, visited, main){
     this.x = x;
     this.y = y;
-    this.barrier = barrier;
+    this.fixed = fixed;
     this.visited = visited;
     this.main = main;
 
     this.draw = function(){
         c.rect(this.x, this.y, 50, 50);
 
-        if (this.barrier){
-            c.fillStyle = "black";
+        if (this.fixed){
+            c.fillStyle = "#ff6063";
         }
 
         else if (this.visited){
@@ -68,6 +70,8 @@ function lineY(x, y, show){
 var boxHeight = canvas.height / 50;
 var boxWidth = canvas.width / 50;
 
+
+// Init
 var linesX = [];
 var linesY = [];
 
@@ -96,64 +100,83 @@ var main = 0;
 function return_neighbours(k){
     var neighbours = [];
 
-    if (k == 0){
-        neighbours.push(k + 1);
-        neighbours.push(k + boxHeight);
+    if ((k + 1) % boxHeight != 0){
+        if (boxArray.length - 1 >= (k + 1) && (k + 1) >= 0){
+            if (boxArray[k + 1].visited == false && boxArray[k + 1].fixed == false){
+                neighbours.push(k + 1);
+            }
+        }
     }
 
-    else if (k == boxArray.length){
-        neighbours.push(k - 1);
-        neighbours.push(k - boxHeight);
+    if (k % boxHeight != 0){
+        if(boxArray.length - 1 >= (k - 1) && (k - 1) >= 0){
+            if (boxArray[k - 1].visited == false && boxArray[k - 1].fixed == false){
+            neighbours.push(k - 1);
+             }
+        }
     }
 
-    else if (k == boxHeight - 1){
-        neighbours.push(k - 1);
-        neighbours.push(k + boxHeight);
+    if(boxArray.length - 1 >= (k + boxHeight) && (k + boxHeight) >= 0){
+        if (boxArray[k + boxHeight].visited == false && boxArray[k + boxHeight].fixed == false){
+            neighbours.push(k + boxHeight);
+        }
     }
 
-    else if (1 < k > boxHeight && k != 0){
-        neighbours.push(k + 1);
-        neighbours.push(k + boxHeight);
-        neighbours.push(k - 1);
-    }
-
-    else if (boxArray.length - boxHeight - 1 < k > boxArray.length && k != boxArray.length){
-        neighbours.push(k - 1);
-        neighbours.push(k - boxHeight);
-        neighbours.push(k + 1);
-    }
-
-    else{
-        neighbours.push(k + 1);
-        neighbours.push(k - 1);
-        neighbours.push(k + boxHeight);
-        neighbours.push(k - boxHeight);
+    if(boxArray.length - 1 >= (k - boxHeight) && (k - boxHeight) >= 0){
+        if (boxArray[k - boxHeight].visited == false && boxArray[k - boxHeight].fixed == false){
+            neighbours.push(k - boxHeight);
+        }
     }
 
     return neighbours;
 }
 
+var trail = [];
+var fixed = [];
+
 function generate_maze(){
-    for (var i = 0; i < boxArray.length; i++){
-        if (i == main){
-            boxArray[i].main = true;
+    boxArray[main].visited = true;
+    var neighbours = return_neighbours(main);
+
+    if (neighbours.length != 0){
+        var direction = Math.floor((Math.random() * neighbours.length) + 1);
+
+        trail.push(main);
+        main = neighbours[direction - 1];
+        boxArray[main].main = true;
+
+        if (trail[trail.length - 1] == main - 1){
+            linesX[main].show = false;
         }
 
-        else{
+        else if (trail[trail.length - 1] == main + 1){
+            linesX[main + 1].show = false;
+        }
+
+        else if (trail[trail.length - 1] == main - boxHeight){
+            linesY[main].show = false;
+        }
+
+        else if (trail[trail.length - 1] == main + boxHeight){
+            linesY[main + 14].show = false;
+        }
+    }
+
+    else{
+        boxArray[main].fixed = true;
+        main = trail[trail.length - 1];
+        boxArray[main].main = false;
+        boxArray[main].fixed = true;
+        trail.pop();
+       }
+
+    for (var i = 0; i < boxArray.length; i++){
+        if (i != main){
             boxArray[i].main = false;
         }
     }
 
-    if (main != boxArray.length){
-        var direction = Math.floor((Math.random() * 4) + 1);
-        var neighbours = return_neighbours(main);
-
-        main = neighbours[direction - 1];
-    }
-
-    else{
-        main = 0;
-    }
+    console.log(trail);
 }
 
 function animate(){
@@ -168,3 +191,9 @@ function animate(){
 }
 
 animate();
+
+function doKeyDown(e) {
+    requestAnimationFrame(animate);
+}
+
+// change it so that in the current iteration, main is not set to visited, the last main is set to visited
